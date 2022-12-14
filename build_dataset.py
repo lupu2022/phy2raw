@@ -6,10 +6,13 @@ import numpy as np
 from tqdm import tqdm
 import numpy as np
 from os import makedirs, path
+import os
+import soundfile as sf
 from scipy.io import wavfile, savemat
 import pyloudnorm as pyln
 import crepe
 import torch
+import subprocess
 
 def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
     S = li.stft (
@@ -23,7 +26,7 @@ def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
     S = abs(S);
     S = np.mean(S, 0)[..., :-1]
 
-    return s;
+    return S;
 
 def extract_pitch(signal, sampling_rate, block_size):
     length = signal.shape[-1] // block_size
@@ -55,15 +58,20 @@ def extract_pitch(signal, sampling_rate, block_size):
 
     return f0, conf
 
-def physical_mode(p, c, l ) :
+def physical_mode(sr, bs, p, c, l) :
     p = p.reshape(1, -1);
     c = c.reshape(1, -1);
     l = l.reshape(1, -1);
 
     r = np.concatenate([p,c,l], 0);
     savemat('perf.mat', {'array': r});
-    os.exit(0);
 
+    cmd = "./phy/process " + str(sr) + " " +  str(bs) +  " perf.mat";
+    os.system(cmd);
+    x, sr = li.load("out.wav", sr=sr)
+    os.system("rm -f out.wav perf.mat");
+
+    return x
 
 def get_files(data_location, extension, **kwargs):
     return list(pathlib.Path(data_location).rglob(f"*.{extension}"))
@@ -75,13 +83,12 @@ def preprocess(f, sampling_rate, block_size, signal_length, conf_threshold, **kw
     y = np.pad(y, (0, N))
 
     pitch, conf = extract_pitch(y, sampling_rate, block_size)
-    loudness = extract_loudness2(y, sampling_rate, block_size)
+    loudness = extract_loudness(y, sampling_rate, block_size)
 
     '''
     generated physical model output
     '''
-    x = physical_mode(pitch, conf, loudness);
-
+    x = physical_mode(sampling_rate, block_size, pitch, conf, loudness);
 
     hop_size = int( signal_length )
     hop_num = int( x.shape[0] / hop_size)
@@ -90,8 +97,7 @@ def preprocess(f, sampling_rate, block_size, signal_length, conf_threshold, **kw
     assert( int(hop_size/block_size) * block_size == hop_size)
 
     xx = []
-    pp = []
-    ll = []
+    yy = []
     for h in range(0, hop_num):
         left = h * hop_size
         right = left + signal_length
@@ -101,66 +107,43 @@ def preprocess(f, sampling_rate, block_size, signal_length, conf_threshold, **kw
 
         mean_conf = np.mean(conf[bleft:bright])
         if (mean_conf >= conf_threshold):
+            yy.append( y[left:right] )
             xx.append( x[left:right] )
-            pp.append( pitch[bleft:bright] )
-            ll.append( loudness[bleft:bright] )
         else:
             global dropped
             dropped = dropped + 1
 
     if len(xx) > 0:
         x = np.concatenate(xx, 0)
-        pitch = np.concatenate(pp, 0)
-        loudness = np.concatenate(ll, 0)
+        y = np.concatenate(yy, 0)
 
         x = x.reshape(-1, signal_length)
-        pitch = pitch.reshape(x.shape[0], -1)
-        loudness = loudness.reshape(x.shape[0], -1)
-
-        return x, pitch, loudness
+        y = y.reshape(-1, signal_length)
+        return x, y
     else:
-        return [], [], []
+        return [], []
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self, out_dir, input_length, is_train):
+    def __init__(self, out_dir, is_train):
         super().__init__()
-        self.input_length = input_length
-        self.signals = np.load(path.join(out_dir, "signals.npy"))
-        self.pitchs = np.load(path.join(out_dir, "pitchs.npy"))
-        self.loudness = np.load(path.join(out_dir, "loudness.npy"))
+        self.inputs = np.load(path.join(out_dir, "inputs.npy"))
+        self.outputs = np.load(path.join(out_dir, "outputs.npy"))
 
         self.is_train = is_train;
-        self.split = int(self.signals.shape[0] * 0.10);
+        self.split = int(self.inputs.shape[0] * 0.10);
 
     def __len__(self):
         if ( self.is_train ) :
-            return self.signals.shape[0] - self.split
+            return self.inputs.shape[0] - self.split
         return self.split;
 
     def __getitem__(self, idx):
         if ( self.is_train ) :
             idx = idx + self.split
 
-        s = torch.from_numpy(self.signals[idx])
-        p = torch.from_numpy(self.pitchs[idx])
-        l = torch.from_numpy(self.loudness[idx])
-
-        pitch = torch.zeros([p.shape[0], self.input_length]).to(p)
-        loudness = torch.zeros([l.shape[0], self.input_length]).to(l)
-
-        extend = self.input_length - 1
-        p = torch.nn.functional.pad(p, [extend, 0])
-        l = torch.nn.functional.pad(l, [extend, 0])
-
-        p[:extend+1] = p[extend]
-        l[:extend+1] = l[extend]
-
-        block_num = pitch.shape[0]
-        for i in range(0, block_num):
-            pitch[i, :] = p[i:i+self.input_length]
-            loudness[i, :] = l[i:i+self.input_length]
-
-        return s, pitch, loudness
+        x = torch.from_numpy(self.inputs[idx])
+        y = torch.from_numpy(self.outputs[idx])
+        return x, y
 
 def main():
     class args(Config):
@@ -173,32 +156,27 @@ def main():
     files = get_files(**config["preprocess"])
     pb = tqdm(files)
 
-    signals = []
-    pitchs = []
-    loudness = []
+    ins = []
+    outs = []
 
     num = 0
     for f in pb:
         pb.set_description(str(f))
-        x, p, l = preprocess(f, **config["preprocess"])
+        x, y = preprocess(f, **config["preprocess"])
         if len(x) > 0:
             num = num + x.shape[0]
-            signals.append(x)
-            pitchs.append(p)
-            loudness.append(l)
-
+            ins.append(x)
+            outs.append(y)
             print("Current sample number = %d, dropped = " % num, dropped)
 
-    signals = np.concatenate(signals, 0).astype(np.float32)
-    pitchs = np.concatenate(pitchs, 0).astype(np.float32)
-    loudness = np.concatenate(loudness, 0).astype(np.float32)
+    ins = np.concatenate(ins, 0).astype(np.float32)
+    outs = np.concatenate(outs, 0).astype(np.float32)
 
     out_dir = config["preprocess"]["out_dir"]
     makedirs(out_dir, exist_ok=True)
 
-    np.save(path.join(out_dir, "signals.npy"), signals)
-    np.save(path.join(out_dir, "pitchs.npy"), pitchs)
-    np.save(path.join(out_dir, "loudness.npy"), loudness)
+    np.save(path.join(out_dir, "inputs.npy"), ins)
+    np.save(path.join(out_dir, "outputs.npy"), outs)
 
 '''
 class args(Config):
@@ -208,8 +186,10 @@ args.parse_args()
 with open(args.CONFIG, "r") as config:
     config = yaml.safe_load(config)
 
-dataset = Dataset(config["preprocess"]["out_dir"], config["preprocess"]["input_length"], True)
-s, p, l = dataset[0]
+dataset = Dataset(config["preprocess"]["out_dir"], True)
+x, y = dataset[100]
+sf.write("x.wav", x, 16000);
+sf.write("y.wav", y, 16000);
 '''
 
 if __name__ == "__main__":
