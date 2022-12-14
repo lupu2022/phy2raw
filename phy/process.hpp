@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------
-name: "clarinet"
+name: "sawtooth"
 Code generated with Faust 2.54.8 (https://faust.grame.fr)
 Compilation options: -lang cpp -cn PhyModel -es 1 -mcd 16 -single -ftz 0
 ------------------------------------------------------------ */
@@ -9,18 +9,18 @@ Compilation options: -lang cpp -cn PhyModel -es 1 -mcd 16 -single -ftz 0
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
-#endif 
+#endif
 
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <math.h>
 
-#ifndef FAUSTCLASS 
+#ifndef FAUSTCLASS
 #define FAUSTCLASS PhyModel
 #endif
 
-#ifdef __APPLE__ 
+#ifdef __APPLE__
 #define exp10f __exp10f
 #define exp10 __exp10
 #endif
@@ -33,32 +33,27 @@ Compilation options: -lang cpp -cn PhyModel -es 1 -mcd 16 -single -ftz 0
 
 
 class PhyModel : public dsp {
-	
+
  private:
-	
+
 	FAUSTFLOAT fEntry0;
 	int fSampleRate;
 	float fConst0;
 	float fConst1;
 	float fRec0[2];
 	FAUSTFLOAT fEntry1;
-	
+
  public:
-	
-	void metadata(Meta* m) { 
+
+	void metadata(Meta* m) {
 		m->declare("compile_options", "-lang cpp -cn PhyModel -es 1 -mcd 16 -single -ftz 0");
-		m->declare("filename", "clarinet.dsp");
-		m->declare("instruments.lib/author", "Romain Michon (rmichon@ccrma.stanford.edu)");
-		m->declare("instruments.lib/copyright", "Romain Michon");
-		m->declare("instruments.lib/licence", "STK-4.3");
-		m->declare("instruments.lib/name", "Faust-STK Tools Library");
-		m->declare("instruments.lib/version", "1.0");
+		m->declare("filename", "sawtooth.dsp");
 		m->declare("maths.lib/author", "GRAME");
 		m->declare("maths.lib/copyright", "GRAME");
 		m->declare("maths.lib/license", "LGPL with exception");
 		m->declare("maths.lib/name", "Faust Math Library");
 		m->declare("maths.lib/version", "2.5");
-		m->declare("name", "clarinet");
+		m->declare("name", "sawtooth");
 		m->declare("oscillators.lib/name", "Faust Oscillator Library");
 		m->declare("oscillators.lib/version", "0.3");
 		m->declare("platform.lib/name", "Generic Platform Library");
@@ -71,27 +66,27 @@ class PhyModel : public dsp {
 	virtual int getNumOutputs() {
 		return 1;
 	}
-	
+
 	static void classInit(int sample_rate) {
 	}
-	
+
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
 		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
 		fConst1 = 1.0f / fConst0;
 	}
-	
+
 	virtual void instanceResetUserInterface() {
 		fEntry0 = FAUSTFLOAT(4.4e+02f);
 		fEntry1 = FAUSTFLOAT(1.0f);
 	}
-	
+
 	virtual void instanceClear() {
 		for (int l0 = 0; l0 < 2; l0 = l0 + 1) {
 			fRec0[l0] = 0.0f;
 		}
 	}
-	
+
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
 		instanceInit(sample_rate);
@@ -101,15 +96,15 @@ class PhyModel : public dsp {
 		instanceResetUserInterface();
 		instanceClear();
 	}
-	
+
 	virtual PhyModel* clone() {
 		return new PhyModel();
 	}
-	
+
 	virtual int getSampleRate() {
 		return fSampleRate;
 	}
-	
+
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openHorizontalBox("Basic_Parameters");
 		ui_interface->declare(&fEntry0, "1", "");
@@ -121,7 +116,7 @@ class PhyModel : public dsp {
 		ui_interface->addNumEntry("gain", &fEntry1, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
 		ui_interface->closeBox();
 	}
-	
+
 	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
 		FAUSTFLOAT* output0 = outputs[0];
 		float fSlow0 = std::max<float>(1.1920929e-07f, std::fabs(float(fEntry0)));
