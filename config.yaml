@@ -10,12 +10,12 @@ preprocess:
 model:
   sampling_rate: *samplingrate
   
-  num_channels:  8
-  dilations:     8
-  repeat:        4
+  num_channels:  4
+  dilations:     9
+  repeat:        5
   kernel_size:   3
 
-  reverb_length: 128 
+  reverb_length: 4096 
 
 train:
   scales:   [ 4096,   2048,  1024,  512,   256,  128]

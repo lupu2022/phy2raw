@@ -15,8 +15,8 @@ class args(Config):
     CONFIG = "config.yaml"
     NAME = "debug"
     ROOT = "runs"
-    STEPS = 10000
-    BATCH = 16
+    STEPS = 100000
+    BATCH = 24
     LR = 1e-3
 
 def do_train():
