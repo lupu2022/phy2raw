@@ -178,19 +178,19 @@ def main():
     np.save(path.join(out_dir, "inputs.npy"), ins)
     np.save(path.join(out_dir, "outputs.npy"), outs)
 
-'''
 class args(Config):
     CONFIG = "config.yaml"
 
-args.parse_args()
-with open(args.CONFIG, "r") as config:
-    config = yaml.safe_load(config)
+def test():
+    args.parse_args()
+    with open(args.CONFIG, "r") as config:
+        config = yaml.safe_load(config)
 
-dataset = Dataset(config["preprocess"]["out_dir"], True)
-x, y = dataset[100]
-sf.write("x.wav", x, 16000);
-sf.write("y.wav", y, 16000);
-'''
+    dataset = Dataset(config["preprocess"]["out_dir"], True)
+    x, y = dataset[100]
+    sf.write("x.wav", x, 16000);
+    sf.write("y.wav", y, 16000);
 
 if __name__ == "__main__":
     main()
+    #test()

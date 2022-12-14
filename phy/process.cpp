@@ -33,16 +33,9 @@ int main(const int argc, char* argv[]) {
         float c = buf[1];
         float l = buf[2];
 
-        if ( c >= 0.70 ) {
-            *ui.freq = p;
-        }
-        if ( l <= 0.0001 ) {
-            *ui.gate = 0;
-            *ui.gain = 0;
-        } else {
-            *ui.gate = 1.0;
-            *ui.gain = l * 0.33;
-        }
+        *ui.freq = p;
+        *ui.gate = 1.0;
+        *ui.gain = l * 0.25;
 
         model.compute(bfsize, nullptr, ilv.inputs());
         ilv.interleave();

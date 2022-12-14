@@ -15,7 +15,7 @@ model:
   repeat:        3
   kernel_size:   3
 
-  reverb_length: 4096
+  reverb_length: 5120
 
 train:
   scales:   [ 4096,   2048,  1024,  512,   256,  128]
