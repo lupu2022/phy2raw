@@ -34,7 +34,7 @@ int main(const int argc, char* argv[]) {
         float l = buf[2];
 
         *ui.freq = p;
-        *ui.gate = 1.0;
+        //*ui.gate = 1.0;
         *ui.gain = l * 0.25;
 
         model.compute(bfsize, nullptr, ilv.inputs());
