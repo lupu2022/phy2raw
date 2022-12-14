@@ -6,15 +6,17 @@
 #include "process.hpp"
 
 int main(const int argc, char* argv[]) {
-    const int sr = 48000;
-    const int bfsize = 480;
+    const int sr = std::stoi(argv[1]);
+    const int bfsize = std::stoi(argv[2]);
+    const char* matfile = argv[3];
+
     UI ui;
     PhyModel model;
     model.init(sr);
     model.buildUserInterface(&ui);
 
     SF_INFO in_info = { sr, sr, 3, SF_FORMAT_MAT5 | SF_FORMAT_FLOAT | SF_ENDIAN_LITTLE, 0, 0};
-    SNDFILE* in_sf = sf_open("r.mat", SFM_READ, &in_info);
+    SNDFILE* in_sf = sf_open(matfile, SFM_READ, &in_info);
 
     SF_INFO out_info = { sr, sr, model.getNumOutputs(), SF_FORMAT_WAV | SF_FORMAT_FLOAT | SF_ENDIAN_LITTLE, 0, 0};
     SNDFILE* out_sf = sf_open("out.wav", SFM_WRITE, &out_info);

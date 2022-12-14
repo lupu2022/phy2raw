@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 import numpy as np
 from os import makedirs, path
-from scipy.io import wavfile
+from scipy.io import wavfile, savemat
 import pyloudnorm as pyln
 import crepe
 import torch
@@ -55,17 +55,33 @@ def extract_pitch(signal, sampling_rate, block_size):
 
     return f0, conf
 
+def physical_mode(p, c, l ) :
+    p = p.reshape(1, -1);
+    c = c.reshape(1, -1);
+    l = l.reshape(1, -1);
+
+    r = np.concatenate([p,c,l], 0);
+    savemat('perf.mat', {'array': r});
+    os.exit(0);
+
+
 def get_files(data_location, extension, **kwargs):
     return list(pathlib.Path(data_location).rglob(f"*.{extension}"))
 
 dropped = 0
 def preprocess(f, sampling_rate, block_size, signal_length, conf_threshold, **kwargs):
-    x, sr = li.load(f, sr=sampling_rate)
-    N = (signal_length - len(x) % signal_length) % signal_length
-    x = np.pad(x, (0, N))
+    y, sr = li.load(f, sr=sampling_rate)
+    N = (signal_length - len(y) % signal_length) % signal_length
+    y = np.pad(y, (0, N))
 
-    pitch, conf = extract_pitch(x, sampling_rate, block_size)
-    loudness = extract_loudness2(x, sampling_rate, block_size)
+    pitch, conf = extract_pitch(y, sampling_rate, block_size)
+    loudness = extract_loudness2(y, sampling_rate, block_size)
+
+    '''
+    generated physical model output
+    '''
+    x = physical_mode(pitch, conf, loudness);
+
 
     hop_size = int( signal_length )
     hop_num = int( x.shape[0] / hop_size)
@@ -104,7 +120,6 @@ def preprocess(f, sampling_rate, block_size, signal_length, conf_threshold, **kw
         return x, pitch, loudness
     else:
         return [], [], []
-
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, out_dir, input_length, is_train):
