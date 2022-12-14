@@ -8,6 +8,40 @@ import msgpack
 import yaml
 import sys
 
+def multiscale_fft(signal, scales, overlap):
+    stfts = []
+    for s in scales:
+        S = torch.stft(
+            signal,                     ## input
+            s,                          ## n_fft
+            int(s * (1 - overlap)),     ## hop_length
+            s,                          ## win_length
+            torch.hann_window(s).to(signal),
+            True,
+            normalized=True,
+            return_complex=True,
+        ).abs()
+        stfts.append(S)
+    return stfts
+
+def safe_log(x):
+    return torch.log(x + 1e-7)
+
+def multiscale_loss(s, y, scales, overlap, weights):
+    ori_stft = multiscale_fft(s, scales, overlap)
+    rec_stft = multiscale_fft(y, scales, overlap)
+
+    loss = 0
+    for i in range(0, len(ori_stft)):
+        s_x = ori_stft[i];
+        s_y = rec_stft[i];
+        lin_loss = (s_x - s_y).abs().mean()
+        log_loss = (safe_log(s_x) - safe_log(s_y)).abs().mean()
+        loss = loss + (lin_loss + log_loss) * weights[i]
+
+    return loss
+
+
 class CausalConv1d(torch.nn.Conv1d):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, groups=1, bias=True):
         self.__padding = (kernel_size - 1) * dilation

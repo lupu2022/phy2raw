@@ -10,7 +10,7 @@ preprocess:
 model:
   sampling_rate: *samplingrate
   
-  num_channels:  16
+  num_channels:  8
   dilations:     9
   repeat:        3
   kernel_size:   3
