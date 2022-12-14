@@ -9,16 +9,13 @@ preprocess:
 
 model:
   sampling_rate: *samplingrate
-  block_size: *blocksize
- 
-  input_hop:  4
-  input_length: &inputlength 64
-  hidden_size:  256
   
-  FM_config: [12.0, 3.0, 1.0,  8.5, 3.2, 1.0,  2.0, 1.0, 1.0]
-  FM_amp:  3.0
-  noise_bands: 65
-  reverb_length: 1024
+  num_channels:  16
+  dilations:     9
+  repeat:        3
+  kernel_size:   3
+
+  reverb_length: 4096
 
 train:
   scales:   [ 4096,   2048,  1024,  512,   256,  128]
