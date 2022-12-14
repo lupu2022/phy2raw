@@ -54,7 +54,7 @@ def do_train():
     for e in tqdm(range(epochs)):
         for x,y in dataloader:
             y = y.to(device);
-            x = x.to(device).unsqueeze(1);
+            x = x.to(device);
             y_ = model(x);
 
             loss = multiscale_loss(y, y_, config["train"]["scales"], config["train"]["overlap"], config["train"]["weights"])

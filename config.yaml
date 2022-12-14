@@ -11,11 +11,11 @@ model:
   sampling_rate: *samplingrate
   
   num_channels:  8
-  dilations:     9
-  repeat:        3
+  dilations:     8
+  repeat:        4
   kernel_size:   3
 
-  reverb_length: 5120
+  reverb_length: 16000
 
 train:
   scales:   [ 4096,   2048,  1024,  512,   256,  128]
