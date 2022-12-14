@@ -20,7 +20,7 @@ frequencyMod = 220;		//Frequency of the sine wave for the modulation of theta (w
 nonLinAttack = 0.1;		//Attack duration of the nonlinearity (0 ~ 2 )
 
 vibratoFreq = 5;		//Vibrato_Freq, unit:hz
-vibratoGain = 0.1;		//Vibrato_Gain A value between 0 and 1
+vibratoGain = 0.01;		//Vibrato_Gain A value between 0 and 1
 vibratoAttack = 0.5;	//Vibrato attack duration, unit:s (0 ~ 2)
 vibratoRelease = 0.01;	//Vibrato release duration, unit:s (0 ~ 2)
 

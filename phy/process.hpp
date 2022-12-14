@@ -723,7 +723,7 @@ class PhyModel : public dsp {
 			iRec19[0] = iSlow14 * (iRec19[1] + 1);
 			float fTemp2 = fConst17 * float(iRec19[0]);
 			fRec20[0] = fSlow11 + fRec20[1] * float(fVec2[1] >= fSlow11);
-			float fTemp3 = std::max<float>(0.0f, std::min<float>(fConst18 * fRec20[0], 1.0f) * (1.0f - fTemp2)) * (0.09f * fRec18[0] * ftbl0PhyModelSIG0[std::max<int>(0, std::min<int>(int(65536.0f * fRec15[0]), 65535))] + 0.9f);
+			float fTemp3 = std::max<float>(0.0f, std::min<float>(fConst18 * fRec20[0], 1.0f) * (1.0f - fTemp2)) * (0.009f * fRec18[0] * ftbl0PhyModelSIG0[std::max<int>(0, std::min<int>(int(65536.0f * fRec15[0]), 65535))] + 0.9f);
 			float fTemp4 = fSlow23 * fRec13[(IOTA0 - iSlow22) & 8191] + fSlow21 * fRec13[(IOTA0 - iSlow19) & 8191];
 			fRec22[0] = fConst12 * fRec22[1];
 			float fTemp5 = 3.1415927f * fRec22[0] * fTemp4 * std::max<float>(0.0f, std::min<float>(fConst17 * fRec20[0], 1.0f) - fTemp2);
