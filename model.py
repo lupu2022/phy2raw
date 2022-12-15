@@ -173,10 +173,19 @@ class Phy2Raw(nn.Module):
         self.reverb = Reverb(reverb_length, sampling_rate);
 
     def forward(self, x):
+        '''
         x_ = self.reverb(x).squeeze(-1).unsqueeze(1);
         y_ = self.filter(x_);
 
         return y_.squeeze(1);
+        '''
+
+        x_ = x.unsqueeze(1);
+        x_ = self.filter(x_);
+        x_ = x_.squeeze(1);
+        y_ = self.reverb(x_);
+
+        return y_.squeeze(-1);
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
