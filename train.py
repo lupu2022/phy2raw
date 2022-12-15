@@ -55,6 +55,8 @@ def do_train():
         for x,y in dataloader:
             y = y.to(device);
             x = x.to(device);
+            x = x + (torch.rand_like(x) - 0.5) * 2 * config["train"]["noise_gain"];
+
             y_ = model(x);
 
             loss = multiscale_loss(y, y_, config["train"]["scales"], config["train"]["overlap"], config["train"]["weights"])
