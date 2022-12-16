@@ -10,9 +10,9 @@ preprocess:
 model:
   sampling_rate: *samplingrate
   
-  num_channels:  6
+  num_channels:  8
   dilations:     8
-  repeat:        5
+  repeat:        3
   kernel_size:   3
 
   reverb_length: 8000
