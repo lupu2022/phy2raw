@@ -188,8 +188,8 @@ class Phy2Raw(nn.Module):
         return y_.squeeze(-1);
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Please input config_file");
+    if len(sys.argv) < 3:
+        print("Please input config_file weight_file");
         sys.exit(0);
 
     with open(sys.argv[1], "r") as data:
@@ -198,3 +198,23 @@ if __name__ == "__main__":
     config = config["model"];
     model = Phy2Raw(**config)
 
+    result = model.load_state_dict( torch.load( sys.argv[2], map_location=torch.device('cpu')), False)
+    assert( len(result.missing_keys) == 0)
+
+    model.eval()
+    sdict = model.state_dict()
+
+    allWeights = [];
+    for k in sdict.keys():
+        t = sdict[k]
+
+        if k.startswith("reverb"):
+            continue
+
+        print(k, t.shape)
+        if len(t.shape) > 0:
+            vlist = t.numpy().flatten().tolist()
+            allWeights.append({k: vlist})
+
+    with open("weights.yaml", "w") as f:
+        f.write( yaml.dump(allWeights) );
