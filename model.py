@@ -125,9 +125,6 @@ class WaveNet(nn.Module):
         out = self.linear_mix(out)
         return out
 
-    def debug(self, x):
-        return self.input_layer(x);
-
 
 def fft_convolve(signal, kernel):
     signal = nn.functional.pad(signal, (0, signal.shape[-1]))
@@ -227,4 +224,6 @@ if __name__ == "__main__":
 
     model.eval()
     x = torch.ones(1, 1, 128) * 0.5;
-    out = model.filter.debug(x)
+    out = model.filter(x)
+
+
