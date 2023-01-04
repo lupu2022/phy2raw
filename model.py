@@ -125,6 +125,9 @@ class WaveNet(nn.Module):
         out = self.linear_mix(out)
         return out
 
+    def debug(self, x):
+        return self.input_layer(x);
+
 
 def fft_convolve(signal, kernel):
     signal = nn.functional.pad(signal, (0, signal.shape[-1]))
@@ -165,7 +168,6 @@ class Reverb(nn.Module):
 
         return x
 
-
 class Phy2Raw(nn.Module):
     def __init__(self, sampling_rate, num_channels, dilations, repeat, kernel_size, reverb_length):
         super().__init__();
@@ -187,20 +189,8 @@ class Phy2Raw(nn.Module):
 
         return y_.squeeze(-1);
 
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Please input config_file weight_file");
-        sys.exit(0);
 
-    with open(sys.argv[1], "r") as data:
-        config = yaml.safe_load(data)
-
-    config = config["model"];
-    model = Phy2Raw(**config)
-
-    result = model.load_state_dict( torch.load( sys.argv[2], map_location=torch.device('cpu')), False)
-    assert( len(result.missing_keys) == 0)
-
+def dump(model):
     model.eval()
     sdict = model.state_dict()
 
@@ -218,3 +208,23 @@ if __name__ == "__main__":
 
     with open("weights.yaml", "w") as f:
         f.write( yaml.dump(allWeights) );
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Please input config_file weight_file");
+        sys.exit(0);
+
+    with open(sys.argv[1], "r") as data:
+        config = yaml.safe_load(data)
+
+    config = config["model"];
+    model = Phy2Raw(**config)
+
+    result = model.load_state_dict( torch.load( sys.argv[2], map_location=torch.device('cpu')), False)
+    assert( len(result.missing_keys) == 0)
+
+    #dump(model);
+
+    model.eval()
+    x = torch.ones(1, 1, 128) * 0.5;
+    out = model.filter.debug(x)
