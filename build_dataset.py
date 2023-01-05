@@ -191,6 +191,29 @@ def test():
     sf.write("x.wav", x, 16000);
     sf.write("y.wav", y, 16000);
 
+def build_perf(f):
+    sampling_rate = 16000;
+    block_size = 160;
+
+    y, sr = li.load(f, sr=sampling_rate)
+    N = (block_size - len(y) % block_size) % block_size
+    y = np.pad(y, (0, N))
+
+    pitch, conf = extract_pitch(y, sampling_rate, block_size)
+    loudness = extract_loudness(y, sampling_rate, block_size)
+
+    p = pitch.reshape(1, -1);
+    c = conf.reshape(1, -1);
+    l = loudness.reshape(1, -1);
+
+    r = np.concatenate([p,c,l], 0);
+    savemat('perf.mat', {'array': r});
+
+    cmd = "./phy/process " + str(sampling_rate) + " " +  str(block_size) +  " perf.mat";
+    os.system(cmd);
+
+
 if __name__ == "__main__":
     main()
     #test()
+    #build_perf("/home/teaonly/dataset/CINSTR/dizi/000124.wav");
