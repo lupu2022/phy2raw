@@ -220,10 +220,12 @@ if __name__ == "__main__":
     result = model.load_state_dict( torch.load( sys.argv[2], map_location=torch.device('cpu')), False)
     assert( len(result.missing_keys) == 0)
 
-    #dump(model);
+    dump(model);
 
+    '''
     model.eval()
     x = torch.ones(1, 1, 64) * 0.5;
     out = model.filter(x)
+    '''
 
 
