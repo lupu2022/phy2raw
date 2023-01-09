@@ -223,7 +223,7 @@ if __name__ == "__main__":
     #dump(model);
 
     model.eval()
-    x = torch.ones(1, 1, 128) * 0.5;
+    x = torch.ones(1, 1, 64) * 0.5;
     out = model.filter(x)
 
 
